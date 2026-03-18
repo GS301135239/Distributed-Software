@@ -1,0 +1,68 @@
+server:
+  port: 8087
+  address: 0.0.0.0
+
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
+  datasource:
+    url: jdbc:mysql://localhost:3306/distributed-software?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: zhong20050428
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# ???? MyBatis ?????????
+mybatis:
+  mapper-locations: classpath:Mappers/*.xml
+  type-aliases-package: org.example.distributedsoftware.Entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ??????
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# ????
+logging:
+  level:
+    org.example.classtopia: DEBUG
+    org.mybatis: DEBUG
+    org.apache.ibatis: DEBUG
+    org.mybatis.spring: DEBUG
+    org.mybatis.spring.mapper: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.springframework.jdbc: DEBUG
+    # ??Spring AI????
+    org.springframework.ai: DEBUG
+    org.springframework.ai.openai: DEBUG
+    org.springframework.ai.openai.api: DEBUG
+
+knife4j:
+  enable: true
+  openapi:
+    title: Knife4j????
+    description: "??"
+    email: xiaoymin@foxmail.com
+    concat: ????
+    url: https://docs.xiaominfo.com
+    version: v4.0
+    license: Apache 2.0
+    license-url: https://stackoverflow.com/
+    terms-of-service-url: https://stackoverflow.com/
+    group:
+      test1:
+        group-name: ????
+        api-rule: package
+        api-rule-resources: org.example.distributedsoftware
