@@ -56,9 +56,9 @@ public class UserService {
 
         try{
             userMapper.insertUser(NewUser);
-            log.info("用户注册成功，UserPhone: {}", NewUser.getUserPhone());
+            log.info("User registered successfully, UserPhone: {}", NewUser.getUserPhone());
         } catch (Exception e) {
-            log.error("注册失败，发生异常: {}", e.getMessage());
+            log.error("Registration failed, exception: {}", e.getMessage());
             return Result.error("注册失败，发生异常，请稍后再试！");
         }
 
@@ -90,10 +90,10 @@ public class UserService {
 
         try{
             userMapper.updateUserLoginStatus(UserPhone, 1);
-            log.info("用户登录成功，UserPhone: {}", user.getUserPhone());
+            log.info("User logged in successfully, UserPhone: {}", user.getUserPhone());
         }
         catch(Exception e) {
-            log.error("登录失败，发生异常: {}", e.getMessage());
+            log.error("Login failed, exception: {}", e.getMessage());
             return Result.error("登录失败，发生异常，请稍后再试！");
         }
 

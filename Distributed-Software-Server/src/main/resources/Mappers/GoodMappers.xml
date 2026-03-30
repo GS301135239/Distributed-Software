@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.distributedsoftwareserver.Mapper.GoodMapper">
+    <resultMap id="goodResultMap" type="org.example.distributedsoftwareserver.Entity.Model.Good">
+        <id column="goodId" property="goodId"/>
+        <result column="goodName" property="goodName"/>
+        <result column="goodDescription" property="goodDescription"/>
+        <result column="goodPrice" property="goodPrice"/>
+        <result column="goodInventory" property="goodInventory"/>
+    </resultMap>
+
+    <!-- 使用useGeneratedKeys和keyProperty来获取插入后生成的主键,否则不会插入到布隆过滤器中 -->
+    <insert id = 'insertGood' parameterType="org.example.distributedsoftwareserver.Entity.Model.Good"
+    useGeneratedKeys="true" keyProperty="goodId">
+        INSERT INTO Good (goodName, goodDescription, goodPrice, goodInventory)
+        VALUES (#{goodName},  #{goodDescription}, #{goodPrice}, #{goodInventory})
+    </insert>
+
+    <select id="selectGoodByID" parameterType="long" resultMap="goodResultMap">
+        SELECT * FROM Good WHERE goodId = #{goodId}
+    </select>
+
+    <select id="selectAllGoods" resultMap="goodResultMap">
+        SELECT * FROM Good LIMIT #{count}
+    </select>
+
+</mapper>

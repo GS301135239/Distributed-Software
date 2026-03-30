@@ -1,6 +1,14 @@
 server:
-  port: 8087
+  port: ${PORT:8087}
   address: 0.0.0.0
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  tomcat:
+    uri-encoding: UTF-8
 
 spring:
   profiles:
@@ -15,11 +23,15 @@ spring:
     username: root
     password: zhong20050428
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
 
 # ???? MyBatis ?????????
 mybatis:
   mapper-locations: classpath:Mappers/*.xml
-  type-aliases-package: org.example.distributedsoftware.Entity
+  type-aliases-package: org.example.distributedsoftwareserver.Entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -37,7 +49,7 @@ management:
 # ????
 logging:
   level:
-    org.example.classtopia: DEBUG
+    org.example.distributedsoftwareserver: DEBUG
     org.mybatis: DEBUG
     org.apache.ibatis: DEBUG
     org.mybatis.spring: DEBUG
@@ -65,4 +77,4 @@ knife4j:
       test1:
         group-name: ????
         api-rule: package
-        api-rule-resources: org.example.distributedsoftware
+        api-rule-resources: org.example.distributedsoftwareserver
