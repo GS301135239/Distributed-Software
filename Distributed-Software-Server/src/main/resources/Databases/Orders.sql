@@ -1,0 +1,10 @@
+﻿CREATE TABLE Orders(
+    orderID BIGINT NOT NULL,
+    userID BIGINT NOT NULL,
+    goodId BIGINT NOT NULL,
+    orderQuantity INT NOT NULL,
+    orderTotal DECIMAL(10, 2) NOT NULL,
+    orderTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userID) REFERENCES User(userID),
+    FOREIGN KEY (goodId) REFERENCES Good(goodId)
+)

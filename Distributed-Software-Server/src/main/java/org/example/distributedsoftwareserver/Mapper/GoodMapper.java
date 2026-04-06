@@ -10,4 +10,5 @@ public interface GoodMapper {
     List<Good> selectAllGoods(int count);
     Good selectGoodByID(Long goodId);
     void insertGood(Good good);
+    int decrementInventory(Long goodId);
 }

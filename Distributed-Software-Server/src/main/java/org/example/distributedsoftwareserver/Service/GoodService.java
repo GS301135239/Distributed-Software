@@ -41,22 +41,40 @@ public class GoodService {
 
     private BloomFilter<Long> goodBloomFilter;
 
+    public Good getGoodById(Long goodId) {
+        return goodMapper.selectGoodByID(goodId);
+    }
+
     @PostConstruct
     public void init() {
         // Assume 1,000,000 expected insertions and 0.01 false positive probability
         goodBloomFilter = BloomFilter.create(Funnels.longFunnel(), 1000000, 0.01);
 
-        // In a real project, you should load all existing goodIds from DB into the Bloom filter here
         try {
-            List<Good> goods = goodMapper.selectAllGoods(100); // Sample loading
+            // Load all goods from DB
+            List<Good> goods = goodMapper.selectAllGoods(1000); // Increased limit to load more goods
             if (goods != null) {
                 for (Good g : goods) {
+                    // Update Bloom Filter
                     goodBloomFilter.put(g.getGoodId());
+
+                    // Preload into Redis
+                    String cacheKey = "good:" + g.getGoodId();
+                    CheckGoodVO checkGoodVO = new CheckGoodVO();
+                    BeanUtils.copyProperties(g, checkGoodVO);
+
+                    // Preload stock for seckill
+                    String stockKey = "seckill:stock:" + g.getGoodId();
+                    redisTemplate.opsForValue().set(stockKey, g.getGoodInventory());
+
+                    // Set random TTL to prevent cache avalanche
+                    int randomMinutes = 60 + new Random().nextInt(10);
+                    redisTemplate.opsForValue().set(cacheKey, checkGoodVO, randomMinutes, TimeUnit.MINUTES);
                 }
-                log.info("Bloom Filter initialized with {} goods", goods.size());
+                log.info("Bloom Filter initialized and Redis preloaded with {} goods", goods.size());
             }
         } catch (Exception e) {
-            log.error("Failed to initialize Bloom Filter", e);
+            log.error("Failed to initialize Bloom Filter and preload Redis", e);
         }
     }
 

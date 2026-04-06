@@ -24,4 +24,8 @@
         SELECT * FROM Good LIMIT #{count}
     </select>
 
+    <update id="decrementInventory" parameterType="long">
+        UPDATE Good SET goodInventory = goodInventory - 1 WHERE goodId = #{goodId} AND goodInventory > 0
+    </update>
+
 </mapper>

@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.example.distributedsoftwareserver.Mapper.OrdersMapper">
+    <resultMap id="ordersResultMap" type="org.example.distributedsoftwareserver.Entity.Model.Order">
+        <result column="orderID" property="orderID"/>
+        <result column="userID" property="userID"/>
+        <result column="goodId" property="goodId"/>
+        <result column="orderQuantity" property="orderQuantity"/>
+        <result column="orderTotal" property="orderTotal"/>
+        <result column="orderTime" property="orderTime"/>
+    </resultMap>
+
+    <insert id="insertOrder" parameterType="org.example.distributedsoftwareserver.Entity.Model.Order">
+        INSERT INTO Orders (orderID, userID, goodId, orderQuantity, orderTotal, orderTime)
+        VALUES (#{orderID}, #{userID}, #{goodId}, #{orderQuantity}, #{orderTotal}, #{orderTime})
+    </insert>
+
+    <select id="selectOrdersByUserID" parameterType="long" resultMap="ordersResultMap">
+        SELECT * FROM Orders WHERE userID = #{userID}
+    </select>
+
+    <select id="selectOrdersByOrderID" parameterType="long" resultMap="ordersResultMap">
+        SELECT * FROM Orders WHERE orderID = #{orderID}
+    </select>
+</mapper>
