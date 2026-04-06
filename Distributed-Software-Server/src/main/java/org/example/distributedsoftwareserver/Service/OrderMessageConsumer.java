@@ -28,7 +28,7 @@ public class OrderMessageConsumer {
             Order order = objectMapper.readValue(message, Order.class);
 
             // Optimistic lock decrement
-            int updated = goodMapper.decrementInventory(order.getGoodId());
+            int updated = goodMapper.decrementInventory(order.getGoodId(), order.getOrderQuantity());
             if (updated > 0) {
                 // Generate record in Order table
                 ordersMapper.insertOrder(order);

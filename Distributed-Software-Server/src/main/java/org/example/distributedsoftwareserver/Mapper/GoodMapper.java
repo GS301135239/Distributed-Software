@@ -1,6 +1,7 @@
 package org.example.distributedsoftwareserver.Mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.example.distributedsoftwareserver.Entity.Model.Good;
 
 import java.util.List;
@@ -10,5 +11,5 @@ public interface GoodMapper {
     List<Good> selectAllGoods(int count);
     Good selectGoodByID(Long goodId);
     void insertGood(Good good);
-    int decrementInventory(Long goodId);
+    int decrementInventory(@Param("goodId") Long goodId, @Param("quantity") int quantity);
 }

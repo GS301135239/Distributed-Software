@@ -49,8 +49,9 @@ public class OrderService {
         "return -1; " +
         "end; " +
         "local stock = tonumber(redis.call('get', KEYS[1])); " +
-        "if stock and stock > 0 then " +
-        "redis.call('decr', KEYS[1]); " +
+        "local num = tonumber(ARGV[2]); " +
+        "if stock and stock >= num then " +
+        "redis.call('decrby', KEYS[1], num); " +
         "redis.call('sadd', KEYS[2], ARGV[1]); " +
         "return 1; " +
         "end; " +
@@ -60,6 +61,7 @@ public class OrderService {
     public Result CreateOrder(CreateOrderDTO createOrderDTO, HttpServletRequest request) {
         Long userId = createOrderDTO.getUserID();
         Long goodId = createOrderDTO.getGoodId();
+        int quantity = createOrderDTO.getOrderQuantity() != null ? createOrderDTO.getOrderQuantity() : 1;
 
         // 1. Check if User exists (Safety check for Foreign Key)
         if (userId == null) {
@@ -68,18 +70,19 @@ public class OrderService {
         // You might want to add a DB check or Cache check here if users are many
         // For now, let's assume the caller should provide a valid ID,
         // but we can add a log to help debugging.
-        log.info("Processing order for userId: {}, goodId: {}", userId, goodId);
+        log.info("Processing order for userId: {}, goodId: {}, quantity: {}", userId, goodId, quantity);
 
         // 2. Check Redis via Lua
         List<String> keys = List.of("seckill:stock:" + goodId, "seckill:users:" + goodId);
         Long result = stringRedisTemplate.execute(
             new DefaultRedisScript<>(SECKILL_LUA, Long.class),
             keys,
-            String.valueOf(userId)
+            String.valueOf(userId),
+            String.valueOf(quantity)
         );
 
         if (result == null || result == 0) {
-            return Result.error("Stock is empty");
+            return Result.error("Stock is empty or insufficient");
         } else if (result == -1) {
             return Result.error("User has already purchased this item");
         }
