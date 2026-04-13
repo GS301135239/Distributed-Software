@@ -57,6 +57,10 @@ public class OrderService {
         "end; " +
         "return 0; ";
 
+    private static final String ROLLBACK_LUA =
+        "redis.call('incrby', KEYS[1], ARGV[2]); " +
+        "redis.call('srem', KEYS[2], ARGV[1]); " +
+        "return 1;";
 
     public Result CreateOrder(CreateOrderDTO createOrderDTO, HttpServletRequest request) {
         Long userId = createOrderDTO.getUserID();
@@ -67,9 +71,7 @@ public class OrderService {
         if (userId == null) {
             return Result.error("User ID cannot be null");
         }
-        // You might want to add a DB check or Cache check here if users are many
-        // For now, let's assume the caller should provide a valid ID,
-        // but we can add a log to help debugging.
+
         log.info("Processing order for userId: {}, goodId: {}, quantity: {}", userId, goodId, quantity);
 
         // 2. Check Redis via Lua
@@ -90,6 +92,7 @@ public class OrderService {
         // 3. Success from Redis -> Create order details and send to Kafka
         Good good = goodService.getGoodById(goodId);
         if (good == null) {
+            rollbackRedis(keys, userId, quantity);
             return Result.error("Item does not exist");
         }
 
@@ -104,12 +107,22 @@ public class OrderService {
 
         try {
             String message = objectMapper.writeValueAsString(order);
-            kafkaTemplate.send("seckill-orders", message);
+            kafkaTemplate.send("seckill-orders", message).get();
             return Result.success("Order request submitted successfully");
         } catch (Exception e) {
-            log.error("Failed to enqueue order message", e);
+            log.error("Failed to enqueue order message, rolling back redis", e);
+            rollbackRedis(keys, userId, quantity);
             return Result.error("Internal Server Error processing order");
         }
+    }
+
+    private void rollbackRedis(List<String> keys, Long userId, int quantity) {
+        stringRedisTemplate.execute(
+            new DefaultRedisScript<>(ROLLBACK_LUA, Long.class),
+            keys,
+            String.valueOf(userId),
+            String.valueOf(quantity)
+        );
     }
 
     public Result getOrdersByUserID(Long userId, HttpServletRequest request) {

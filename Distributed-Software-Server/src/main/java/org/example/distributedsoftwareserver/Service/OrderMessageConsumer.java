@@ -8,6 +8,7 @@ import org.example.distributedsoftwareserver.Mapper.OrdersMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -22,25 +23,31 @@ public class OrderMessageConsumer {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Transactional
     @KafkaListener(topics = "seckill-orders", groupId = "seckill-group")
     public void consume(String message) {
         try {
             Order order = objectMapper.readValue(message, Order.class);
 
-            // Optimistic lock decrement
+            // 1. Idempotency check
+            if (ordersMapper.selectOrdersByOrderID(order.getOrderID()) != null) {
+                log.info("Duplicate order detected, skipping: {}", order.getOrderID());
+                return;
+            }
+
+            // 2. MySQL stock reduction (using optimistic lock or atomic update)
             int updated = goodMapper.decrementInventory(order.getGoodId(), order.getOrderQuantity());
             if (updated > 0) {
-                // Generate record in Order table
+                // 3. Insert order record
                 ordersMapper.insertOrder(order);
                 log.info("Order created successfully: {}", order.getOrderID());
             } else {
-                log.warn("Failed to create order due to insufficient inventory: {}", order.getOrderID());
-                // Handle failure - rollback could be sent back or Redis updated, normally seckill handles failure silently or logs
+                log.error("Failed to create order due to insufficient inventory in DB: {}", order.getOrderID());
+                throw new RuntimeException("DB Stock reduction failed");
             }
         } catch (Exception e) {
             log.error("Failed to process order message: {}", message, e);
+            throw new RuntimeException(e);
         }
     }
 }
-
-
